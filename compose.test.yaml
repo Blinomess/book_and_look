@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: campus_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U test -d campus_test"]
+      interval: 2s
+      retries: 20
+  tests:
+    build:
+      context: .
+      target: build
+    environment:
+      TEST_DATABASE_URL: postgresql://test:test@db:5432/campus_test
+    command: [npm, test]
+    depends_on:
+      db: { condition: service_healthy }

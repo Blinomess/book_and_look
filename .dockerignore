@@ -1,0 +1,8 @@
+node_modules
+dist
+web-dist
+.git
+.idea
+.env
+.local
+*.log

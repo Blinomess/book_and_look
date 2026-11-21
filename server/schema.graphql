@@ -1,0 +1,84 @@
+type User {
+  id: ID!
+  name: String!
+  login: String!
+  role: String!
+}
+type Auth {
+  token: String!
+  user: User!
+}
+type Room {
+  id: ID!
+  number: String!
+  building: String!
+  floor: Int!
+  kind: String!
+  capacity: Int!
+  equipment: [String!]!
+  active: Boolean!
+}
+type Slot {
+  number: Int!
+  start: String!
+  end: String!
+}
+type Booking {
+  id: ID!
+  roomId: ID!
+  teacherId: ID!
+  teacherName: String!
+  createdBy: ID!
+  date: String!
+  slot: Int!
+  status: String!
+  previousId: ID
+  confirmAt: String
+  deadline: String
+  cancellationReason: String
+}
+type Closure {
+  id: ID!
+  roomId: ID!
+  starts: String!
+  ends: String!
+}
+input SlotInput {
+  roomId: ID!
+  slot: Int!
+}
+input RoomInput {
+  id: ID
+  number: String!
+  building: String!
+  floor: Int!
+  kind: String!
+  capacity: Int!
+  equipment: [String!]!
+  active: Boolean!
+}
+type Query {
+  me: User!
+  rooms: [Room!]!
+  bookings(date: String): [Booking!]!
+  closures: [Closure!]!
+  users: [User!]!
+  slots: [Slot!]!
+  serverTime: String!
+}
+type Mutation {
+  login(login: String!, password: String!): Auth!
+  logout: Boolean!
+  createBooking(date: String!, slots: [SlotInput!]!, teacherId: ID): [Booking!]!
+  confirmBooking(id: ID!): Boolean!
+  cancelBooking(id: ID!): Boolean!
+  saveRoom(input: RoomInput!): Room!
+  closeRoom(roomId: ID!, starts: String!, ends: String!): Boolean!
+  reopenRoom(id: ID!): Boolean!
+  createUser(
+    name: String!
+    login: String!
+    password: String!
+    role: String!
+  ): User!
+}

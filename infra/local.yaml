@@ -1,0 +1,611 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "campus"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Secret",
+      "metadata": {
+        "name": "local-config",
+        "namespace": "campus"
+      },
+      "type": "Opaque",
+      "stringData": {
+        "INTERNAL_KEY": "local-development-only",
+        "DEMO_PASSWORD": "Campus2026!"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "identity-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "identity-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "Recreate"
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "identity-db"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "identity-db"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "postgres",
+                "image": "postgres:17-alpine",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "identity"
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "campus"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "value": "campus-local"
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 5432
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ],
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "campus",
+                      "-d",
+                      "identity"
+                    ]
+                  },
+                  "periodSeconds": 3
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "identity-db"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "identity-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "selector": {
+          "app": "identity-db"
+        },
+        "ports": [
+          {
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "booking-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "booking-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "Recreate"
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "booking-db"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "booking-db"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "postgres",
+                "image": "postgres:17-alpine",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "booking"
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "campus"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "value": "campus-local"
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 5432
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ],
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "campus",
+                      "-d",
+                      "booking"
+                    ]
+                  },
+                  "periodSeconds": 3
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "booking-db"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "booking-db",
+        "namespace": "campus"
+      },
+      "spec": {
+        "selector": {
+          "app": "booking-db"
+        },
+        "ports": [
+          {
+            "port": 5432,
+            "targetPort": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "identity",
+        "namespace": "campus"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "identity"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "identity"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "identity",
+                "image": "campus-booking:local",
+                "imagePullPolicy": "IfNotPresent",
+                "command": [
+                  "node",
+                  "dist/server/identity.js"
+                ],
+                "env": [
+                  {
+                    "name": "PORT",
+                    "value": "3001"
+                  },
+                  {
+                    "name": "IDENTITY_URL",
+                    "value": "http://identity:3001"
+                  },
+                  {
+                    "name": "BOOKING_URL",
+                    "value": "http://booking:3002"
+                  },
+                  {
+                    "name": "SEED_DEMO",
+                    "value": "true"
+                  },
+                  {
+                    "name": "DATABASE_URL",
+                    "value": "postgresql://campus:campus-local@identity-db:5432/identity"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "secretRef": {
+                      "name": "local-config"
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 3001
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3001
+                  },
+                  "periodSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3001
+                  },
+                  "initialDelaySeconds": 30,
+                  "periodSeconds": 10
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "identity",
+        "namespace": "campus"
+      },
+      "spec": {
+        "selector": {
+          "app": "identity"
+        },
+        "ports": [
+          {
+            "port": 3001,
+            "targetPort": 3001
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "booking",
+        "namespace": "campus"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "booking"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "booking"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "booking",
+                "image": "campus-booking:local",
+                "imagePullPolicy": "IfNotPresent",
+                "command": [
+                  "node",
+                  "dist/server/booking.js"
+                ],
+                "env": [
+                  {
+                    "name": "PORT",
+                    "value": "3002"
+                  },
+                  {
+                    "name": "IDENTITY_URL",
+                    "value": "http://identity:3001"
+                  },
+                  {
+                    "name": "BOOKING_URL",
+                    "value": "http://booking:3002"
+                  },
+                  {
+                    "name": "SEED_DEMO",
+                    "value": "true"
+                  },
+                  {
+                    "name": "DATABASE_URL",
+                    "value": "postgresql://campus:campus-local@booking-db:5432/booking"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "secretRef": {
+                      "name": "local-config"
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 3002
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3002
+                  },
+                  "periodSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3002
+                  },
+                  "initialDelaySeconds": 30,
+                  "periodSeconds": 10
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "booking",
+        "namespace": "campus"
+      },
+      "spec": {
+        "selector": {
+          "app": "booking"
+        },
+        "ports": [
+          {
+            "port": 3002,
+            "targetPort": 3002
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "gateway",
+        "namespace": "campus"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "gateway"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "gateway"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "gateway",
+                "image": "campus-booking:local",
+                "imagePullPolicy": "IfNotPresent",
+                "command": [
+                  "node",
+                  "dist/server/gateway.js"
+                ],
+                "env": [
+                  {
+                    "name": "PORT",
+                    "value": "3000"
+                  },
+                  {
+                    "name": "IDENTITY_URL",
+                    "value": "http://identity:3001"
+                  },
+                  {
+                    "name": "BOOKING_URL",
+                    "value": "http://booking:3002"
+                  },
+                  {
+                    "name": "SEED_DEMO",
+                    "value": "true"
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "secretRef": {
+                      "name": "local-config"
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "containerPort": 3000
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3000
+                  },
+                  "periodSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 3000
+                  },
+                  "initialDelaySeconds": 30,
+                  "periodSeconds": 10
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "gateway",
+        "namespace": "campus"
+      },
+      "spec": {
+        "selector": {
+          "app": "gateway"
+        },
+        "ports": [
+          {
+            "port": 3000,
+            "targetPort": 3000
+          }
+        ]
+      }
+    }
+  ]
+}
